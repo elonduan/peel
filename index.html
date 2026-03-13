@@ -1,0 +1,524 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PEEL Paragraph Builder</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700;800&family=Source+Serif+4:ital,wght@0,400;0,600;1,400&family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --ink: #1b2a4a;
+    --paper: #f4f5f0;
+    --warm: #e4e2d8;
+    --accent-p: #1b2a4a;
+    --accent-e: #c8a84e;
+    --accent-ex: #2d5a8e;
+    --accent-l: #8b6d2e;
+    --card-bg: #fffef9;
+    --shadow: rgba(27, 42, 74, 0.08);
+    --radius: 14px;
+    --navy: #1b2a4a;
+    --gold: #c8a84e;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: 'DM Sans', sans-serif;
+    background: var(--paper);
+    color: var(--ink);
+    min-height: 100vh;
+    line-height: 1.6;
+  }
+
+  .header { text-align: center; padding: 36px 20px 12px; }
+  .header h1 {
+    font-family: 'Playfair Display', serif;
+    font-size: 2.4rem; font-weight: 800; letter-spacing: -0.02em;
+  }
+  .header h1 span {
+    display: inline-block; width: 44px; height: 44px; line-height: 44px;
+    text-align: center; border-radius: 50%; margin: 0 2px; font-size: 1.4rem;
+    color: #fff; vertical-align: middle; position: relative; top: -2px;
+  }
+  .header h1 .lp  { background: var(--navy); }
+  .header h1 .le  { background: var(--gold); color: var(--navy); }
+  .header h1 .lex { background: var(--accent-ex); }
+  .header h1 .ll  { background: var(--accent-l); }
+  .header .subtitle {
+    font-family: 'Source Serif 4', serif; font-style: italic;
+    color: #7a7068; margin-top: 6px; font-size: 1.05rem;
+  }
+
+  .grade-bar {
+    display: flex; justify-content: center; gap: 8px;
+    padding: 14px 20px 24px; flex-wrap: wrap;
+  }
+  .grade-chip {
+    font-size: 0.78rem; font-weight: 600; padding: 5px 14px;
+    border-radius: 100px; background: var(--warm); color: #7a7068;
+  }
+  .grade-chip b { color: var(--ink); }
+
+  .step-nav {
+    display: flex; justify-content: center; gap: 6px;
+    padding: 0 20px 28px; flex-wrap: wrap;
+  }
+  .step-nav button {
+    font-family: 'DM Sans', sans-serif; font-size: 0.85rem; font-weight: 600;
+    padding: 8px 20px; border: 2px solid transparent; border-radius: 100px;
+    cursor: pointer; transition: all 0.25s ease; background: var(--warm); color: #7a7068;
+  }
+  .step-nav button .pts {
+    display: inline-block; font-size: 0.7rem; background: rgba(0,0,0,0.08);
+    padding: 1px 7px; border-radius: 100px; margin-left: 5px; vertical-align: middle;
+  }
+  .step-nav button.active { color: #fff; transform: scale(1.05); box-shadow: 0 4px 14px var(--shadow); }
+  .step-nav button.active .pts { background: rgba(255,255,255,0.25); }
+  .step-nav button.active[data-step="0"] { background: var(--accent-p); }
+  .step-nav button.active[data-step="1"] { background: var(--accent-e); }
+  .step-nav button.active[data-step="2"] { background: var(--accent-ex); color: #fff; }
+  .step-nav button.active[data-step="2"] .pts { background: rgba(255,255,255,0.25); }
+  .step-nav button.active[data-step="3"] { background: var(--accent-l); }
+  .step-nav button.active[data-step="4"] { background: var(--ink); }
+  .step-nav button:hover:not(.active) { background: #ddd4c8; }
+
+  .container { max-width: 780px; margin: 0 auto; padding: 0 20px 60px; }
+
+  .panel { display: none; animation: fadeUp 0.3s ease; }
+  .panel.active { display: block; }
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(14px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+
+  .card {
+    background: var(--card-bg); border-radius: var(--radius); padding: 30px;
+    box-shadow: 0 2px 20px var(--shadow); margin-bottom: 18px;
+    border-left: 5px solid transparent;
+  }
+  .card.p-card  { border-left-color: var(--accent-p); }
+  .card.e-card  { border-left-color: var(--accent-e); }
+  .card.ex-card { border-left-color: var(--accent-ex); }
+  .card.l-card  { border-left-color: var(--accent-l); }
+
+  .card-header { display: flex; align-items: center; gap: 10px; margin-bottom: 4px; }
+  .badge {
+    display: inline-flex; align-items: center; justify-content: center;
+    width: 34px; height: 34px; border-radius: 50%; color: #fff;
+    font-family: 'DM Sans', sans-serif; font-size: 0.82rem; font-weight: 700; flex-shrink: 0;
+  }
+  .badge-p  { background: var(--accent-p); }
+  .badge-e  { background: var(--accent-e); }
+  .badge-ex { background: var(--accent-ex); color: #fff; }
+  .badge-l  { background: var(--accent-l); }
+  .card-title { font-family: 'Playfair Display', serif; font-size: 1.25rem; font-weight: 700; flex: 1; }
+  .card-pts {
+    font-size: 0.78rem; font-weight: 700; padding: 4px 12px;
+    border-radius: 100px; background: var(--warm); color: #6a6058; white-space: nowrap;
+  }
+
+  .card-criteria {
+    font-family: 'Source Serif 4', serif; font-size: 0.92rem; color: #7a7068;
+    margin: 6px 0 18px; padding: 10px 14px; background: rgba(0,0,0,0.025);
+    border-radius: 8px; border-left: 3px solid #e0d8ce; line-height: 1.55;
+  }
+
+  textarea {
+    width: 100%; font-family: 'Source Serif 4', serif; font-size: 1.05rem;
+    color: var(--ink); background: #fff; border: 2px solid #e0d8ce;
+    border-radius: 8px; padding: 14px 16px; resize: vertical;
+    transition: border-color 0.2s, box-shadow 0.2s; line-height: 1.65; min-height: 90px;
+  }
+  textarea:focus { outline: none; border-color: #b0a898; box-shadow: 0 0 0 3px rgba(176,168,152,0.2); }
+  textarea.tall { min-height: 150px; }
+
+  .evidence-slot {
+    background: #fafaf6; border: 1px solid #e8e0d6; border-radius: 10px;
+    padding: 20px; margin-bottom: 14px;
+  }
+  .evidence-slot h4 {
+    font-family: 'DM Sans', sans-serif; font-size: 0.82rem; font-weight: 700;
+    text-transform: uppercase; letter-spacing: 0.06em; color: var(--accent-e);
+    margin-bottom: 8px; display: flex; align-items: center; gap: 6px;
+  }
+  .evidence-slot h4 .slot-pts {
+    font-size: 0.72rem; font-weight: 600; background: rgba(200,168,78,0.15);
+    color: var(--accent-e); padding: 2px 8px; border-radius: 100px;
+  }
+
+  .explain-block {
+    background: #faf8f2; border: 1px solid #e8e0d6; border-radius: 10px;
+    padding: 20px; margin-bottom: 14px;
+  }
+  .explain-block h4 {
+    font-family: 'DM Sans', sans-serif; font-size: 0.82rem; font-weight: 700;
+    text-transform: uppercase; letter-spacing: 0.06em; color: var(--accent-ex); margin-bottom: 4px;
+  }
+  .explain-block .ev-quote {
+    font-family: 'Source Serif 4', serif; font-size: 0.92rem; color: #5a5048;
+    padding: 10px 12px; background: #fff; border-radius: 6px;
+    border: 1px solid #e8e0d6; margin: 8px 0 12px; line-height: 1.55;
+  }
+  .explain-block .sub-label {
+    font-size: 0.78rem; font-weight: 600; text-transform: uppercase;
+    letter-spacing: 0.06em; color: #8a8078; margin-bottom: 6px;
+  }
+
+  .point-ref {
+    display: flex; align-items: flex-start; gap: 10px;
+    background: rgba(27,42,74,0.05); border: 1px solid rgba(27,42,74,0.12);
+    border-radius: 10px; padding: 14px 16px; margin-bottom: 16px;
+    font-family: 'Source Serif 4', serif; font-size: 0.95rem; color: #2a3a5a; line-height: 1.55;
+  }
+  .point-ref .ref-badge {
+    font-family: 'DM Sans', sans-serif; font-size: 0.7rem; font-weight: 700;
+    background: var(--navy); color: var(--gold); padding: 3px 9px;
+    border-radius: 100px; flex-shrink: 0; margin-top: 2px;
+  }
+  .point-ref em { color: #7a8098; }
+
+  .link-tip {
+    background: rgba(139,109,46,0.06); border: 1px solid rgba(139,109,46,0.15);
+    border-radius: 8px; padding: 12px 14px; margin-bottom: 16px;
+    font-size: 0.85rem; color: #5a4a2a; line-height: 1.55;
+  }
+  .link-tip strong { color: var(--accent-l); }
+
+  .nav-row { display: flex; justify-content: space-between; margin-top: 24px; gap: 12px; }
+  .nav-btn {
+    font-family: 'DM Sans', sans-serif; font-weight: 600; font-size: 0.95rem;
+    padding: 12px 26px; border: none; border-radius: 100px; cursor: pointer; transition: all 0.2s;
+  }
+  .nav-btn.prev { background: var(--warm); color: #6a6058; }
+  .nav-btn.prev:hover { background: #ddd4c8; }
+  .nav-btn.next { background: var(--ink); color: #fff; margin-left: auto; }
+  .nav-btn.next:hover { background: #2a2a4e; transform: translateY(-1px); box-shadow: 0 4px 14px var(--shadow); }
+
+  .mini-label {
+    font-family: 'DM Sans', sans-serif; font-size: 0.75rem; font-weight: 600;
+    text-transform: uppercase; letter-spacing: 0.08em; color: #a09888;
+    margin-top: 18px; margin-bottom: 6px;
+  }
+  .mini-preview {
+    background: var(--warm); border-radius: 10px; padding: 16px 18px;
+    font-family: 'Source Serif 4', serif; font-size: 0.9rem;
+    color: #6a6058; line-height: 1.7; max-height: 180px; overflow-y: auto;
+  }
+  .mini-preview em { color: #9a9088; }
+
+  .output-card {
+    background: var(--card-bg); border-radius: var(--radius); padding: 34px;
+    box-shadow: 0 4px 30px var(--shadow); border: 2px solid #e0d8ce;
+  }
+  .paragraph-text {
+    font-family: 'Source Serif 4', serif; font-size: 1.15rem;
+    line-height: 1.85; color: var(--ink);
+  }
+  .paragraph-text .seg-p  { background: rgba(27,42,74,0.12);   border-radius: 3px; padding: 1px 3px; }
+  .paragraph-text .seg-ev { background: rgba(200,168,78,0.18); border-radius: 3px; padding: 1px 3px; }
+  .paragraph-text .seg-ex { background: rgba(45,90,142,0.12);  border-radius: 3px; padding: 1px 3px; }
+  .paragraph-text .seg-lk { background: rgba(139,109,46,0.15); border-radius: 3px; padding: 1px 3px; }
+
+  .legend {
+    display: flex; gap: 14px; flex-wrap: wrap;
+    margin-top: 18px; padding-top: 14px; border-top: 1px solid #e8e0d6;
+  }
+  .legend-item {
+    display: flex; align-items: center; gap: 6px;
+    font-size: 0.8rem; font-weight: 600; color: #7a7068;
+  }
+  .legend-dot { width: 12px; height: 12px; border-radius: 3px; }
+
+  .output-actions { display: flex; gap: 10px; margin-top: 18px; flex-wrap: wrap; }
+  .copy-btn, .score-btn {
+    font-family: 'DM Sans', sans-serif; font-weight: 600; font-size: 0.88rem;
+    padding: 10px 22px; border: 2px solid #e0d8ce; border-radius: 100px;
+    background: #fff; color: var(--ink); cursor: pointer; transition: all 0.2s;
+  }
+  .copy-btn:hover, .score-btn:hover { border-color: var(--ink); background: var(--ink); color: #fff; }
+
+  .score-display {
+    margin-top: 18px; padding: 18px; background: var(--warm);
+    border-radius: 10px; display: none;
+  }
+  .score-display.visible { display: block; }
+  .score-row {
+    display: flex; justify-content: space-between; align-items: center;
+    padding: 6px 0; font-size: 0.9rem; border-bottom: 1px solid rgba(0,0,0,0.06);
+  }
+  .score-row:last-child { border-bottom: none; }
+  .score-row .label { color: #6a6058; }
+  .score-row .val { font-weight: 700; color: var(--ink); }
+  .score-total {
+    display: flex; justify-content: space-between; align-items: center;
+    margin-top: 10px; padding-top: 10px; border-top: 2px solid rgba(0,0,0,0.1);
+    font-size: 1.05rem; font-weight: 700;
+  }
+  .score-grade {
+    text-align: center; margin-top: 12px;
+    font-size: 1.8rem; font-family: 'Playfair Display', serif; font-weight: 800;
+  }
+
+  @media (max-width: 600px) {
+    .header h1 { font-size: 1.6rem; }
+    .header h1 span { width: 34px; height: 34px; line-height: 34px; font-size: 1rem; }
+    .card { padding: 22px; }
+    .output-card { padding: 24px; }
+    .step-nav button { font-size: 0.78rem; padding: 6px 12px; }
+    .grade-bar { gap: 5px; }
+    .grade-chip { font-size: 0.7rem; padding: 4px 10px; }
+  }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <h1>
+    <span class="lp">P</span><span class="le">E</span><span class="lex">E</span><span class="ll">L</span>
+    Builder
+  </h1>
+  <div class="subtitle">Construct your paragraph, one layer at a time</div>
+</div>
+
+<div class="grade-bar">
+  <div class="grade-chip"><b>0 pts</b> → Grade 0</div>
+  <div class="grade-chip"><b>1–2 pts</b> → Grade 1</div>
+  <div class="grade-chip"><b>3–5 pts</b> → Grade 2</div>
+  <div class="grade-chip"><b>6–7 pts</b> → Grade 3</div>
+</div>
+
+<div class="step-nav">
+  <button class="active" data-step="0" onclick="goStep(0)">Point <span class="pts">2 pts</span></button>
+  <button data-step="1" onclick="goStep(1)">Evidence <span class="pts">2 pts</span></button>
+  <button data-step="2" onclick="goStep(2)">Explanation <span class="pts">2 pts</span></button>
+  <button data-step="3" onclick="goStep(3)">Link <span class="pts">1 pt</span></button>
+  <button data-step="4" onclick="goStep(4)">Paragraph</button>
+</div>
+
+<div class="container">
+
+  <!-- STEP 0: POINT -->
+  <div class="panel active" id="panel-0">
+    <div class="card p-card">
+      <div class="card-header">
+        <span class="badge badge-p">P</span>
+        <span class="card-title">Point (Nuanced Claim)</span>
+        <span class="card-pts">2 pts</span>
+      </div>
+      <div class="card-criteria">Write a <strong>nuanced, arguable thesis</strong> that directly addresses the prompt. A strong point isn't just a fact — it's a claim someone could disagree with.</div>
+      <textarea id="topic-sentence" placeholder="e.g. The fall of Carthage demonstrates how involuntary migration not only brought significant wealth and power, but also led to rising tensions and wider gaps between rich and poor." oninput="updatePreview()"></textarea>
+    </div>
+    <div class="mini-label">Live Preview</div>
+    <div class="mini-preview" id="preview-0"><em>Start typing your point above...</em></div>
+    <div class="nav-row">
+      <span></span>
+      <button class="nav-btn next" onclick="goStep(1)">Next: Evidence →</button>
+    </div>
+  </div>
+
+  <!-- STEP 1: EVIDENCE -->
+  <div class="panel" id="panel-1">
+    <div class="card e-card">
+      <div class="card-header">
+        <span class="badge badge-e">E</span>
+        <span class="card-title">Evidence</span>
+        <span class="card-pts">1 pt each</span>
+      </div>
+      <div class="card-criteria">Provide <strong>relevant, specific historical support</strong> for your claim. Use concrete facts, dates, names, or data — not vague statements.</div>
+      <div class="evidence-slot">
+        <h4>Evidence #1 <span class="slot-pts">1 pt</span></h4>
+        <textarea id="ev-1" placeholder='e.g. In 146 B.C., Rome laid siege to Carthage.' oninput="updatePreview()"></textarea>
+      </div>
+      <div class="evidence-slot">
+        <h4>Evidence #2 <span class="slot-pts">1 pt</span></h4>
+        <textarea id="ev-2" placeholder='e.g. Its 50,000 inhabitants were sold into slavery.' oninput="updatePreview()"></textarea>
+      </div>
+    </div>
+    <div class="mini-label">Live Preview</div>
+    <div class="mini-preview" id="preview-1"><em>Build your paragraph...</em></div>
+    <div class="nav-row">
+      <button class="nav-btn prev" onclick="goStep(0)">← Point</button>
+      <button class="nav-btn next" onclick="goStep(2)">Next: Explanation →</button>
+    </div>
+  </div>
+
+  <!-- STEP 2: EXPLANATION -->
+  <div class="panel" id="panel-2">
+    <div class="card ex-card">
+      <div class="card-header">
+        <span class="badge badge-ex">E</span>
+        <span class="card-title">Explanation</span>
+        <span class="card-pts">2 pts</span>
+      </div>
+      <div class="card-criteria"><strong>Connect your evidence to your claim.</strong> Demonstrate reasoning and show <em>why</em> the evidence proves the point — don't just repeat the evidence.</div>
+      <div id="explanation-area"></div>
+    </div>
+    <div class="mini-label">Live Preview</div>
+    <div class="mini-preview" id="preview-2"><em>Build your paragraph...</em></div>
+    <div class="nav-row">
+      <button class="nav-btn prev" onclick="goStep(1)">← Evidence</button>
+      <button class="nav-btn next" onclick="goStep(3)">Next: Link →</button>
+    </div>
+  </div>
+
+  <!-- STEP 3: LINK -->
+  <div class="panel" id="panel-3">
+    <div class="card l-card">
+      <div class="card-header">
+        <span class="badge badge-l">L</span>
+        <span class="card-title">Link</span>
+        <span class="card-pts">1 pt</span>
+      </div>
+      <div class="card-criteria"><strong>Connect back to the broader question</strong> or transition effectively to a bigger idea. Your Link should go <em>beyond</em> the specific evidence and explain the wider significance.</div>
+      <div class="link-tip">
+        <strong>Remember:</strong> A Link is NOT a summary. If you can swap your Link and your Point and they sound the same, your Link isn't doing enough work. Ask yourself: <em>"Did I just restate my Point, or did I explain something NEW about why this matters to the bigger picture?"</em>
+      </div>
+      <div class="point-ref" id="link-point-ref">
+        <span class="ref-badge">YOUR POINT</span>
+        <span id="link-point-text"><em>Write your point in Step 1 to see it here.</em></span>
+      </div>
+      <textarea id="link-text" class="tall" placeholder='e.g. The significance of this is that involuntary migration can not only have positive effects such as growth and wealth, but also negative effects such as wider gaps between rich and poor, echoing how major authority impact has two sides and perspectives.' oninput="updatePreview()"></textarea>
+    </div>
+    <div class="mini-label">Live Preview</div>
+    <div class="mini-preview" id="preview-3"><em>Build your paragraph...</em></div>
+    <div class="nav-row">
+      <button class="nav-btn prev" onclick="goStep(2)">← Explanation</button>
+      <button class="nav-btn next" onclick="goStep(4)">View Paragraph →</button>
+    </div>
+  </div>
+
+  <!-- STEP 4: FINAL -->
+  <div class="panel" id="panel-4">
+    <div class="output-card">
+      <div class="card-header" style="margin-bottom: 16px;">
+        <span class="card-title">Your PEEL Paragraph</span>
+        <span class="card-pts">/ 7 pts</span>
+      </div>
+      <div class="paragraph-text" id="final-paragraph"><em style="color:#9a9088;">Complete the previous steps to build your paragraph.</em></div>
+      <div class="legend">
+        <div class="legend-item"><div class="legend-dot" style="background:rgba(27,42,74,0.3);"></div> Point (2)</div>
+        <div class="legend-item"><div class="legend-dot" style="background:rgba(200,168,78,0.4);"></div> Evidence (1+1)</div>
+        <div class="legend-item"><div class="legend-dot" style="background:rgba(45,90,142,0.3);"></div> Explanation (2)</div>
+        <div class="legend-item"><div class="legend-dot" style="background:rgba(139,109,46,0.35);"></div> Link (1)</div>
+      </div>
+      <div class="output-actions">
+        <button class="copy-btn" onclick="copyParagraph()">Copy Plain Text</button>
+      </div>
+    </div>
+    <div class="nav-row">
+      <button class="nav-btn prev" onclick="goStep(3)">← Link</button>
+    </div>
+  </div>
+
+</div>
+
+<script>
+  let currentStep = 0;
+  let savedExplanation = '';
+
+  function goStep(n) {
+    // Save explanation text before leaving step 2
+    if (currentStep === 2) {
+      const el = document.getElementById('explanation-text');
+      if (el) savedExplanation = el.value;
+    }
+    currentStep = n;
+    document.querySelectorAll('.panel').forEach((p, i) => p.classList.toggle('active', i === n));
+    document.querySelectorAll('.step-nav button').forEach((b, i) => b.classList.toggle('active', i === n));
+    if (n === 2) buildExplanationArea();
+    if (n === 3) updatePointRef();
+    if (n === 4) buildFinalParagraph();
+    updatePreview();
+  }
+
+  function getData() {
+    const exEl = document.getElementById('explanation-text');
+    return {
+      point: (document.getElementById('topic-sentence').value || '').trim(),
+      ev1: (document.getElementById('ev-1').value || '').trim(),
+      ev2: (document.getElementById('ev-2').value || '').trim(),
+      explanation: exEl ? exEl.value.trim() : savedExplanation.trim(),
+      link: (document.getElementById('link-text').value || '').trim()
+    };
+  }
+
+  function buildExplanationArea() {
+    const d = getData();
+    const area = document.getElementById('explanation-area');
+    const val = savedExplanation;
+
+    let html = '';
+    if (d.ev1 || d.ev2) {
+      html += '<div class="explain-block">';
+      html += '<h4>Your Evidence (for reference)</h4>';
+      if (d.ev1) html += `<div class="ev-quote"><strong style="color:var(--accent-e);">Evidence #1:</strong> "${esc(d.ev1)}"</div>`;
+      if (d.ev2) html += `<div class="ev-quote"><strong style="color:var(--accent-e);">Evidence #2:</strong> "${esc(d.ev2)}"</div>`;
+      html += '<div class="sub-label">Your Explanation — show WHY this evidence proves your point</div>';
+      html += `<textarea id="explanation-text" class="tall" placeholder="Explain the connection between your evidence and your point. Demonstrate reasoning — don't just repeat the evidence." oninput="savedExplanation=this.value; updatePreview()">${esc(val)}</textarea>`;
+      html += '</div>';
+    } else {
+      html = '<em style="color:#9a9088;">Write your evidence in the previous step first.</em>';
+    }
+    area.innerHTML = html;
+  }
+
+  function updatePointRef() {
+    const d = getData();
+    const el = document.getElementById('link-point-text');
+    el.innerHTML = d.point ? `"${esc(d.point)}"` : '<em>Write your point in Step 1 to see it here.</em>';
+  }
+
+  function updatePreview() {
+    const d = getData();
+    let parts = [];
+    if (d.point) parts.push(d.point);
+    if (d.ev1) parts.push(d.ev1);
+    if (d.ev2) parts.push(d.ev2);
+    if (d.explanation) parts.push(d.explanation);
+    if (d.link) parts.push(d.link);
+    const text = parts.length ? parts.join(' ') : '<em>Start typing above...</em>';
+    for (let i = 0; i <= Math.min(currentStep, 3); i++) {
+      const el = document.getElementById(`preview-${i}`);
+      if (el) el.innerHTML = text;
+    }
+  }
+
+  function buildFinalParagraph() {
+    const d = getData();
+    let html = '';
+    if (d.point) html += `<span class="seg-p">${esc(d.point)}</span> `;
+    if (d.ev1)   html += `<span class="seg-ev">${esc(d.ev1)}</span> `;
+    if (d.ev2)   html += `<span class="seg-ev">${esc(d.ev2)}</span> `;
+    if (d.explanation) html += `<span class="seg-ex">${esc(d.explanation)}</span> `;
+    if (d.link)  html += `<span class="seg-lk">${esc(d.link)}</span>`;
+    document.getElementById('final-paragraph').innerHTML =
+      html || '<em style="color:#9a9088;">Complete the previous steps to build your paragraph.</em>';
+  }
+
+  function esc(s) {
+    const el = document.createElement('div');
+    el.textContent = s;
+    return el.innerHTML;
+  }
+
+  function copyParagraph() {
+    const d = getData();
+    let parts = [];
+    if (d.point) parts.push(d.point);
+    if (d.ev1) parts.push(d.ev1);
+    if (d.ev2) parts.push(d.ev2);
+    if (d.explanation) parts.push(d.explanation);
+    if (d.link) parts.push(d.link);
+    navigator.clipboard.writeText(parts.join(' ')).then(() => {
+      const btn = document.querySelector('.copy-btn');
+      btn.textContent = 'Copied!';
+      setTimeout(() => btn.textContent = 'Copy Plain Text', 1500);
+    });
+  }
+
+</script>
+
+</body>
+</html>
+apps-fileview.texmex_20260305.00_p0
+peel-builder.html
+Displaying peel-builder.html.
