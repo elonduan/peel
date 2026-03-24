@@ -519,30 +519,31 @@
   }
   async function freeFeedback() {
   const d = getData();
-  const fullText = `Point: ${d.point} | Evidence: ${d.ev1}, ${d.ev2} | Explanation: ${d.explanation} | Link: ${d.link}`;
+  const fullText = `Point: ${d.point}. Evidence: ${d.ev1}, ${d.ev2}. Explanation: ${d.explanation}. Link: ${d.link}`;
   
   const box = document.getElementById("ai-feedback-box");
   box.innerHTML = "<b>Teacher AI is thinking...</b> ⏳";
   box.classList.add("visible");
 
   try {
-    // Change this line:
+    // IMPORTANT: Use your actual Vercel link here
     const response = await fetch('https://peel-ruby.vercel.app/api/feedback', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ paragraph: fullText })
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ paragraph: fullText })
     });
 
     const result = await response.json();
     
     if (result.feedback) {
-      // Show the AI feedback!
       box.innerHTML = "<b>AI Teacher Feedback:</b><br><br>" + result.feedback;
     } else {
-      box.innerHTML = "⚠️ Something went wrong. Make sure your API key is added to Vercel!";
+      // This will now show the SPECIFIC error from the server
+      box.innerHTML = "⚠️ Error: " + (result.error || "Unknown error");
     }
   } catch (error) {
-    box.innerHTML = "❌ Connection error. Is the site deployed on Vercel?";
+    box.innerHTML = "❌ Connection error. Check the console for details.";
+    console.error(error);
   }
 }
 
