@@ -517,47 +517,33 @@
       setTimeout(() => btn.textContent = 'Copy Plain Text', 1500);
     });
   }
-  function freeFeedback() {
+  async function freeFeedback() {
+  const d = getData();
+  const fullText = `Point: ${d.point} | Evidence: ${d.ev1}, ${d.ev2} | Explanation: ${d.explanation} | Link: ${d.link}`;
   
-    const d = getData();
-  
-    let feedback = [];
-  
-    // POINT
-    if (!d.point)
-      feedback.push("❌ No point written.");
-    else if (d.point.length < 40)
-      feedback.push("⚠️ Point is too short. Make a stronger claim.");
-    else
-      feedback.push("✅ Point looks good.");
-  
-    // EVIDENCE
-    if (!d.ev1)
-      feedback.push("❌ Evidence #1 missing.");
-    if (!d.ev2)
-      feedback.push("⚠️ Add second evidence for full points.");
-  
-    // EXPLANATION
-    if (!d.explanation)
-      feedback.push("❌ Explanation missing.");
-    else if (d.explanation.length < 50)
-      feedback.push("⚠️ Explanation too short. Explain WHY the evidence proves the point.");
-    else
-      feedback.push("✅ Explanation good.");
-  
-    // LINK
-    if (!d.link)
-      feedback.push("❌ Link missing.");
-    else if (d.link === d.point)
-      feedback.push("⚠️ Link repeats the point. Explain bigger meaning.");
-    else
-      feedback.push("✅ Link good.");
-  
-    const box = document.getElementById("ai-feedback-box");
-    box.classList.add("visible");
-    box.innerHTML = "<b>Feedback:</b><br><br>" + feedback.join("<br>");
-  
+  const box = document.getElementById("ai-feedback-box");
+  box.innerHTML = "<b>Teacher AI is thinking...</b> ⏳";
+  box.classList.add("visible");
+
+  try {
+    const response = await fetch('/api/feedback', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ paragraph: fullText })
+    });
+
+    const result = await response.json();
+    
+    if (result.feedback) {
+      // Show the AI feedback!
+      box.innerHTML = "<b>AI Teacher Feedback:</b><br><br>" + result.feedback;
+    } else {
+      box.innerHTML = "⚠️ Something went wrong. Make sure your API key is added to Vercel!";
+    }
+  } catch (error) {
+    box.innerHTML = "❌ Connection error. Is the site deployed on Vercel?";
   }
+}
 
 </script>
 
