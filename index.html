@@ -526,10 +526,11 @@
   box.classList.add("visible");
 
   try {
-    const response = await fetch('/api/feedback', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ paragraph: fullText })
+    // Change this line:
+    const response = await fetch('https://peel-ruby.vercel.app/api/feedback', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ paragraph: fullText })
     });
 
     const result = await response.json();
