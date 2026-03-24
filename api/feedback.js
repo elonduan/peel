@@ -1,43 +1,44 @@
 export default async function handler(req, res) {
-  // ADD THIS BLOCK TO FIX THE CONNECTION:
+  // 1. CORS Headers (Allows your GitHub site to talk to Vercel)
   res.setHeader('Access-Control-Allow-Credentials', true);
-  res.setHeader('Access-Control-Allow-Origin', '*'); // This allows GitHub to talk to Vercel
+  res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'GET,OPTIONS,PATCH,DELETE,POST,PUT');
-  res.setHeader('Access-Control-Allow-Headers', 'X-CSRF-Token, X-Requested-With, Accept, Accept-Version, Content-Length, Content-MD5, Content-Type, Date, X-Api-Version');
+  res.setHeader('Access-Control-Allow-Headers', 'X-CSRF-Token, X-Requested-With, Accept, Accept-Version, Content-Length, Content-MD5, Content-Type, Date, X-Api-Version, Content-Type');
 
   if (req.method === 'OPTIONS') {
     res.status(200).end();
     return;
   }
-  // 1. Handle Preflight (Security check by browser)
-  if (req.method === 'OPTIONS') {
-    return res.status(200).end();
+
+  // 2. Safety Check: Is the API Key missing in Vercel Settings?
+  const apiKey = process.env.GEMINI_API_KEY;
+  if (!apiKey) {
+    return res.status(500).json({ error: "Missing GEMINI_API_KEY in Vercel settings." });
   }
 
-  // 2. Get the student's text
-  const { paragraph } = req.body;
-  const apiKey = process.env.GEMINI_API_KEY; 
-
   try {
-    // 3. Talk to Google Gemini
+    const { paragraph } = req.body;
+
     const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        contents: [{ 
-          parts: [{ 
-            text: `You are a Social Studies teacher. Review this PEEL paragraph and give specific, encouraging feedback on how to improve the Point, Evidence, Explanation, and Link. Keep it short: ${paragraph}` 
-          }] 
-        }]
+        contents: [{ parts: [{ text: `You are a Social Studies teacher. Review this PEEL paragraph and give specific, encouraging feedback: ${paragraph}` }] }]
       })
     });
 
     const data = await response.json();
-    
-    // 4. Send the AI's answer back to your website
+
+    // 3. Handle Google API errors (like expired keys)
+    if (data.error) {
+      return res.status(400).json({ error: data.error.message });
+    }
+
     const aiText = data.candidates[0].content.parts[0].text;
     res.status(200).json({ feedback: aiText });
+
   } catch (error) {
-    res.status(500).json({ error: "The AI is currently resting. Try again in a minute!" });
+    console.error(error);
+    res.status(500).json({ error: "Server crashed: " + error.message });
   }
 }
