@@ -15,7 +15,7 @@ export default async function handler(req, res) {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        contents: [{ parts: [{ text: `You are a Social Studies teacher. Review this PEEL paragraph and give specific feedback: ${paragraph}` }] }]
+        contents: [{ parts: [{ text: `You are a Social Studies teacher. Review this PEEL paragraph and give specific feedback. IMPORTANT: Do not use Markdown, bolding (**), or hashtags (###). Use only plain text and simple line breaks. KEEP IT SHORT: ${paragraph}` }] }]
       })
     });
 
