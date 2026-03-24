@@ -402,7 +402,10 @@
       </div>
       <div class="output-actions">
         <button class="copy-btn" onclick="copyParagraph()">Copy Plain Text</button>
+        <button class="score-btn" onclick="freeFeedback()">Check Paragraph</button>
       </div>
+
+<div id="ai-feedback-box" class="score-display"></div>
     </div>
     <div class="nav-row">
       <button class="nav-btn prev" onclick="goStep(3)">← Link</button>
@@ -513,6 +516,47 @@
       btn.textContent = 'Copied!';
       setTimeout(() => btn.textContent = 'Copy Plain Text', 1500);
     });
+  }
+  function freeFeedback() {
+  
+    const d = getData();
+  
+    let feedback = [];
+  
+    // POINT
+    if (!d.point)
+      feedback.push("❌ No point written.");
+    else if (d.point.length < 40)
+      feedback.push("⚠️ Point is too short. Make a stronger claim.");
+    else
+      feedback.push("✅ Point looks good.");
+  
+    // EVIDENCE
+    if (!d.ev1)
+      feedback.push("❌ Evidence #1 missing.");
+    if (!d.ev2)
+      feedback.push("⚠️ Add second evidence for full points.");
+  
+    // EXPLANATION
+    if (!d.explanation)
+      feedback.push("❌ Explanation missing.");
+    else if (d.explanation.length < 50)
+      feedback.push("⚠️ Explanation too short. Explain WHY the evidence proves the point.");
+    else
+      feedback.push("✅ Explanation good.");
+  
+    // LINK
+    if (!d.link)
+      feedback.push("❌ Link missing.");
+    else if (d.link === d.point)
+      feedback.push("⚠️ Link repeats the point. Explain bigger meaning.");
+    else
+      feedback.push("✅ Link good.");
+  
+    const box = document.getElementById("ai-feedback-box");
+    box.classList.add("visible");
+    box.innerHTML = "<b>Feedback:</b><br><br>" + feedback.join("<br>");
+  
   }
 
 </script>
