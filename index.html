@@ -624,10 +624,18 @@
   }
   function closePopup() {
     document.getElementById("startup-popup").style.display = "none";
+  
+    // remember that user already saw popup
+    localStorage.setItem("popupShown", "yes");
   }
   
   window.onload = function () {
-    document.getElementById("startup-popup").style.display = "flex";
+    // check if popup was shown before
+    if (localStorage.getItem("popupShown") === "yes") {
+      document.getElementById("startup-popup").style.display = "none";
+    } else {
+      document.getElementById("startup-popup").style.display = "flex";
+    }
   };
 
 </script>
