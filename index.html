@@ -584,6 +584,7 @@
     });
   }
   async function freeFeedback() {
+    const btn = document.querySelector(".score-btn");
     const d = getData();
   
     const fullText =
@@ -605,7 +606,14 @@
       box.classList.add("visible");
       return;
     }
+    
     if (!canRequest()) return;
+    btn.disabled = true;
+
+    setTimeout(() => {
+      btn.disabled = false;
+    }, 60000);
+    
     
     // ---- NORMAL AI CHECK ----
     box.innerHTML = "<b>E.AI is thinking...</b> ⏳";
