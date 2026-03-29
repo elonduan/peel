@@ -468,6 +468,21 @@
 <script>
   let currentStep = 0;
   let savedExplanation = '';
+  let lastRequestTime = 0;
+
+  function canRequest() {
+    const now = Date.now();
+  
+    if (now - lastRequestTime < 60000) { // 60 seconds
+      const box = document.getElementById("ai-feedback-box");
+      box.classList.add("visible");
+      box.innerHTML = "⏳ Please wait about 1 minute before using AI again.";
+      return false;
+    }
+  
+    lastRequestTime = now;
+    return true;
+  }
 
   function goStep(n) {
     // Save explanation text before leaving step 2
@@ -590,7 +605,8 @@
       box.classList.add("visible");
       return;
     }
-  
+    if (!canRequest()) return;
+    
     // ---- NORMAL AI CHECK ----
     box.innerHTML = "<b>E.AI is thinking...</b> ⏳";
     box.classList.add("visible");
