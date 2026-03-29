@@ -472,14 +472,15 @@
 
   function canRequest() {
     const now = Date.now();
+    const box = document.getElementById("ai-feedback-box");
   
-    if (now - lastRequestTime < 60000) { // 60 seconds
-      const box = document.getElementById("ai-feedback-box");
+    if (now - lastRequestTime < 60000) {
       box.classList.add("visible");
       box.innerHTML = "⏳ Please wait about 1 minute before using AI again.";
       return false;
     }
   
+    // ✅ Move this OUTSIDE condition so it's always set when user tries
     lastRequestTime = now;
     return true;
   }
