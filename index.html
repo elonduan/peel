@@ -639,18 +639,20 @@
       if (result.feedback) {
         box.innerHTML =
           "<b>AI Teacher Feedback:</b><br><br>" + result.feedback;
+      
+      } else if (result.error && result.error.toLowerCase().includes("quota")) {
+        box.innerHTML =
+          "⚠️ You’ve reached the AI limit. Please wait about 1 minute.";
+      
       } else {
         box.innerHTML =
-          "⚠️ Error: " + (result.error || "Check Vercel Logs");
+          "⚠️ Something went wrong. Please try again later.";
       }
     } catch (error) {
       console.error(error);
     
-      if (error.message && error.message.includes("quota")) {
-        box.innerHTML = "⚠️ AI limit reached. Please wait about 1 minute.";
-      } else {
-        box.innerHTML = "❌ AI is busy or offline. Try again in a moment.";
-      }
+      box.innerHTML =
+        "🚫 Cannot connect to AI right now.<br>Please try again in a few seconds.";
     }
   }
   function closePopup() {
