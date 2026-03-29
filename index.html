@@ -635,8 +635,13 @@
           "⚠️ Error: " + (result.error || "Check Vercel Logs");
       }
     } catch (error) {
-      box.innerHTML = "❌ Connection error. Is Vercel running?";
       console.error(error);
+    
+      if (error.message && error.message.includes("quota")) {
+        box.innerHTML = "⚠️ AI limit reached. Please wait about 1 minute.";
+      } else {
+        box.innerHTML = "❌ AI is busy or offline. Try again in a moment.";
+      }
     }
   }
   function closePopup() {
